@@ -1,4 +1,3 @@
-# wrap.scrt.network
+# metamask.scrt.network
 
-Wrapping Coins as Secret Tokens immediately supercharges them with private balances and private transfers.
-
+MetaMask dashboard for Secret Network
