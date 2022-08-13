@@ -99,35 +99,11 @@ async function setupMetamask(
   const [ethAddress] = await window.ethereum.request({
     method: "eth_requestAccounts",
   });
-  console.log("ethAddress", ethAddress);
 
-  let pubkeyHex = localStorage.getItem(ethAddress);
-  let pubkey: Uint8Array;
+  // @ts-ignore
+  const signer = await MetaMaskSigner.create(window.ethereum, ethAddress);
 
-  if (pubkeyHex) {
-    pubkey = fromHex(pubkeyHex);
-  } else {
-    const msgHash = sha256("blabla");
-    // @ts-ignore
-    const sigResult: string = await window.ethereum.request({
-      method: "eth_sign",
-      params: [ethAddress, "0x" + toHex(msgHash)],
-    });
-
-    const sig = fromHex(sigResult.slice(2, -2));
-    const recoveryBit = parseInt(sigResult.slice(-2), 16) - 27;
-
-    pubkey = secp256k1.recoverPublicKey(msgHash, sig, recoveryBit, true);
-
-    if (!localStorage.getItem(ethAddress)) {
-      localStorage.setItem(ethAddress, toHex(pubkey));
-    }
-  }
-
-  const secretAddress = pubkeyToAddress(pubkey);
-  console.log("secretAddress", secretAddress);
-
-  const signer = new MetaMaskSigner(ethAddress, pubkey);
+  const [{ address: secretAddress }] = await signer.getAccounts();
 
   const secretjs = await SecretNetworkClient.create({
     grpcWebUrl: SECRET_RPC,
@@ -142,10 +118,10 @@ async function setupMetamask(
   const tx = await secretjs.tx.bank.send(
     {
       fromAddress: secretAddress,
-      toAddress: "secret1e8fnfznmgm67nud2uf2lrcvuy40pcdhrerph7v",
-      amount: [{ amount: "1", denom: "uscrt" }],
+      toAddress: "secret1m4q43hzu3xl5xh4uex84n9zah8q3xg4h23z4kf",
+      amount: [{ amount: "100", denom: "uscrt" }],
     },
-    { memo: "Sent using MetaMask (Assaf was here)" }
+    { memo: "Sent using MetaMask" }
   );
   console.log(tx);
 }
