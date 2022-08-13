@@ -1,48 +1,19 @@
-import { Window as KeplrWindow } from "@keplr-wallet/types";
-import { Avatar, Typography } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import {
+  Avatar,
+  Button,
+  Input,
+  InputAdornment,
+  InputLabel,
+  Typography,
+} from "@mui/material";
+import BigNumber from "bignumber.js";
+import React, { useEffect, useRef, useState } from "react";
+import { isMobile } from "react-device-detect";
 import ReactDOM from "react-dom";
 import { BreakpointProvider } from "react-socks";
-import { SecretNetworkClient } from "secretjs";
-import { chains, tokens } from "./config";
+import { Bech32, SecretNetworkClient } from "secretjs";
 import "./index.css";
 import { MetamaskPanel } from "./MetamaskStuff";
-import { Buffer } from "buffer";
-globalThis.Buffer = Buffer;
-declare global {
-  interface Window extends KeplrWindow {}
-}
-window.addEventListener("keplr_keystorechange", () => {
-  console.log("Key store in Keplr is changed. Refreshing page.");
-  location.reload();
-});
-
-class ErrorBoundary extends React.Component<{}, { hasError: boolean }> {
-  constructor(props: any) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: any) {
-    console.error(error);
-    // Update state so the next render will show the fallback UI.
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: any, errorInfo: any) {
-    // You can also log the error to an error reporting service
-    console.error(error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      // You can render any custom fallback UI
-      return <h1>Something went wrong.</h1>;
-    }
-
-    return this.props.children;
-  }
-}
 
 const footerHeight = "1.8rem";
 
@@ -79,39 +50,28 @@ ReactDOM.render(
 export default function App() {
   const [secretjs, setSecretjs] = useState<SecretNetworkClient | null>(null);
   const [secretAddress, setSecretAddress] = useState<string>("");
-  const [balances, setBalances] = useState<Map<string, string>>(new Map());
-  const [prices, setPrices] = useState<Map<string, number>>(new Map());
-  const [loadingCoinBalances, setLoadingCoinBalances] =
-    useState<boolean>(false);
+  const [scrtBalance, setScrtBalance] = useState<string>("");
+  const inputAmountRef = useRef<any>("");
+  const inputRecipientAddressRef = useRef<any>("");
+  const [isToAddressError, setIsRecipientError] = useState<boolean>(true);
+  const [isAmountError, setIsAmountError] = useState<boolean>(true);
 
-  const updateCoinBalances = async () => {
-    const newBalances = new Map<string, string>(balances);
-
-    const url = `${chains["Secret Network"].lcd}/bank/balances/${secretAddress}`;
+  const updateScrtBalance = async () => {
     try {
-      const response = await fetch(url);
-      const result: {
-        height: string;
-        result: Array<{ denom: string; amount: string }>;
-      } = await response.json();
+      const response = await secretjs!.query.bank.balance({
+        address: secretAddress,
+        denom: "uscrt",
+      });
 
-      const denoms = Array.from(
-        new Set(
-          tokens.map((t) => t.withdrawals.map((w) => w.from_denom)).flat()
-        )
-      );
-
-      for (const denom of denoms) {
-        const balance =
-          result.result.find((c) => c.denom === denom)?.amount || "0";
-
-        newBalances.set(denom, balance);
+      if (response.balance) {
+        const amount = new BigNumber(response.balance.amount)
+          .dividedBy(1e6)
+          .toFixed();
+        setScrtBalance(amount);
       }
     } catch (e) {
-      console.error(`Error while trying to query ${url}:`, e);
+      console.error(`Error while trying to fetch SCRT balance:`, e);
     }
-
-    setBalances(newBalances);
   };
 
   useEffect(() => {
@@ -119,13 +79,9 @@ export default function App() {
       return;
     }
 
-    const interval = setInterval(updateCoinBalances, 10_000);
+    const interval = setInterval(updateScrtBalance, 5_000);
 
-    (async () => {
-      setLoadingCoinBalances(true);
-      await updateCoinBalances();
-      setLoadingCoinBalances(false);
-    })();
+    updateScrtBalance();
 
     return () => {
       clearInterval(interval);
@@ -137,11 +93,15 @@ export default function App() {
       <div
         style={{
           display: "flex",
-          placeContent: "flex-end",
-          placeItems: "center",
+          justifyContent: "flex-end",
+          alignItems: "center",
           minHeight: "3rem",
+          gap: "0.5rem",
         }}
       >
+        {scrtBalance ? (
+          <span style={{ paddingTop: "0.3rem" }}>{scrtBalance} SCRT</span>
+        ) : null}
         <MetamaskPanel
           secretjs={secretjs}
           setSecretjs={setSecretjs}
@@ -155,10 +115,16 @@ export default function App() {
           flexDirection: "column",
           placeItems: "center",
           placeContent: "center",
+          gap: "0.3rem",
         }}
       >
-        <Typography variant="h2" component="div" align="center">
-          Get Privacy
+        <Typography
+          variant="h3"
+          component="div"
+          align="center"
+          sx={{ marginTop: "0.5rem" }}
+        >
+          Secret MetaMask
         </Typography>
         <Typography
           component="div"
@@ -167,22 +133,96 @@ export default function App() {
             marginBottom: "0.5rem",
           }}
         >
-          Wrapping Coins as Secret Tokens immediately supercharges them with
-          private balances and private transfers.
+          Sending Secret Network transactions using MetaMask is that easy.
         </Typography>
+        <div style={{ width: isMobile ? "95%" : "28rem" }}>
+          <div style={{ width: "100%", margin: "0.7rem 0" }}>
+            <InputLabel htmlFor="recipient" variant="standard">
+              Recipient
+            </InputLabel>
+            <Input
+              id="recipient"
+              placeholder="secret1..."
+              onChange={() => {
+                const isError = (() => {
+                  try {
+                    const recipientSecretAddress = Bech32.decode(
+                      inputRecipientAddressRef.current.value
+                    );
+                    return (
+                      recipientSecretAddress.prefix !== "secret" ||
+                      recipientSecretAddress.data.length !== 20
+                    );
+                  } catch (e) {
+                    return true;
+                  }
+                })();
+
+                setIsRecipientError(isError);
+              }}
+              fullWidth
+              autoComplete="off"
+              type="text"
+              inputRef={inputRecipientAddressRef}
+            />
+          </div>
+          <div style={{ width: "100%" }}>
+            <InputLabel htmlFor="amount" variant="standard">
+              Amount
+            </InputLabel>
+            <Input
+              id="amount"
+              autoFocus
+              onChange={() => {
+                const isNotPositive = !(
+                  Number(inputAmountRef.current.value) > 0
+                );
+                const isAboveBalance =
+                  Number(inputAmountRef.current.value) + 0.002 >
+                  Number(scrtBalance);
+
+                // fee = 20k gas * 0.1uscrt = 2000usrct = 0.002 SCRT
+
+                setIsAmountError(isNotPositive || isAboveBalance);
+              }}
+              fullWidth
+              autoComplete="off"
+              type="text"
+              inputRef={inputAmountRef}
+              endAdornment={
+                <InputAdornment position="end">SCRT</InputAdornment>
+              }
+            />
+          </div>
+        </div>
+        <div style={{ marginTop: "1rem" }}>
+          <Button
+            disabled={secretAddress === "" || isToAddressError || isAmountError}
+            variant="contained"
+            sx={{
+              padding: "0.5em 0",
+              width: "10em",
+              fontWeight: "bold",
+              fontSize: "1.2em",
+            }}
+            onClick={() => {
+              // if (availableBalance === "") {
+              //   return;
+              // }
+              // const prettyBalance = new BigNumber(availableBalance)
+              //   .dividedBy(`1e${token.decimals}`)
+              //   .toFormat();
+              // if (prettyBalance === "NaN") {
+              //   return;
+              // }
+              // inputAmountRef.current.value = "";
+              // inputToRef.current.value = "";
+            }}
+          >
+            Send Tokens
+          </Button>
+        </div>
       </div>
-      {/* tokens.map((t) => (
-        <ErrorBoundary key={t.name}>
-          <TokenRow
-            token={t}
-            loadingCoinBalances={loadingCoinBalances}
-            secretAddress={secretAddress}
-            secretjs={secretjs}
-            balances={balances}
-            price={prices.get(t.name) || 0}
-          />
-        </ErrorBoundary>
-      )) */}
     </div>
   );
 }
