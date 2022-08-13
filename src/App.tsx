@@ -180,7 +180,6 @@ export default function App() {
             </InputLabel>
             <Input
               id="amount"
-              autoFocus
               onChange={() => {
                 const isNotPositive = !(
                   Number(inputAmountRef.current.value) > 0
