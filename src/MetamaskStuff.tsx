@@ -2,7 +2,7 @@ import { FileCopyOutlined } from "@mui/icons-material";
 import Button from "@mui/material/Button";
 import React, { useState } from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
-import { SecretNetworkClient, MetaMaskSigner } from "secretjs";
+import { MetaMaskSigner, SecretNetworkClient } from "secretjs";
 import { chains } from "./config";
 
 import { MetaMaskInpageProvider } from "@metamask/providers";
@@ -10,10 +10,9 @@ import {
   Dialog,
   DialogContent,
   DialogContentText,
-  DialogTitle,
-  Typography,
+  DialogTitle
 } from "@mui/material";
-import { isDesktop, isMobile } from "react-device-detect";
+import { isDesktop } from "react-device-detect";
 declare global {
   interface Window {
     ethereum: MetaMaskInpageProvider;
@@ -137,14 +136,4 @@ async function setupMetamask(
 
   setSecretAddress(secretAddress);
   setSecretjs(secretjs);
-
-  // const tx = await secretjs.tx.bank.send(
-  //   {
-  //     fromAddress: secretAddress,
-  //     toAddress: "secret1m4q43hzu3xl5xh4uex84n9zah8q3xg4h23z4kf",
-  //     amount: [{ amount: "100", denom: "uscrt" }],
-  //   },
-  //   { memo: "Sent using MetaMask" }
-  // );
-  // console.log(tx);
 }

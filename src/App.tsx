@@ -1,6 +1,11 @@
 import {
   Avatar,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Input,
   InputAdornment,
   InputLabel,
@@ -11,7 +16,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 import ReactDOM from "react-dom";
 import { BreakpointProvider } from "react-socks";
-import { Bech32, SecretNetworkClient } from "secretjs";
+import { Bech32, BroadcastMode, SecretNetworkClient } from "secretjs";
 import "./index.css";
 import { MetamaskPanel } from "./MetamaskStuff";
 
@@ -55,6 +60,9 @@ export default function App() {
   const inputRecipientAddressRef = useRef<any>("");
   const [isToAddressError, setIsRecipientError] = useState<boolean>(true);
   const [isAmountError, setIsAmountError] = useState<boolean>(true);
+  const [isTxDialogOpen, setIsTxDialogOpen] = useState<boolean>(false);
+  const [txDialogError, setTxDialogError] = useState<string>("");
+  const [txDialogSuccess, setTxDialogSuccess] = useState<any>(null);
 
   const updateScrtBalance = async () => {
     try {
@@ -197,7 +205,12 @@ export default function App() {
         </div>
         <div style={{ marginTop: "1rem" }}>
           <Button
-            disabled={secretAddress === "" || isToAddressError || isAmountError}
+            disabled={
+              secretAddress === "" ||
+              !secretjs ||
+              isToAddressError ||
+              isAmountError
+            }
             variant="contained"
             sx={{
               padding: "0.5em 0",
@@ -205,22 +218,83 @@ export default function App() {
               fontWeight: "bold",
               fontSize: "1.2em",
             }}
-            onClick={() => {
-              // if (availableBalance === "") {
-              //   return;
-              // }
-              // const prettyBalance = new BigNumber(availableBalance)
-              //   .dividedBy(`1e${token.decimals}`)
-              //   .toFormat();
-              // if (prettyBalance === "NaN") {
-              //   return;
-              // }
-              // inputAmountRef.current.value = "";
-              // inputToRef.current.value = "";
+            onClick={async () => {
+              const amount = new BigNumber(inputAmountRef.current.value)
+                .multipliedBy(1e6)
+                .toFixed(0, BigNumber.ROUND_DOWN);
+
+              setIsTxDialogOpen(true);
+              setTxDialogSuccess(null);
+              setTxDialogError("");
+
+              try {
+                const tx = await secretjs!.tx.bank.send(
+                  {
+                    fromAddress: secretAddress,
+                    toAddress: inputRecipientAddressRef.current.value,
+                    amount: [{ amount, denom: "uscrt" }],
+                  },
+                  {
+                    memo: "Sent using MetaMask",
+                    gasLimit: 20_000,
+                    gasPriceInFeeDenom: 0.1,
+                    feeDenom: "uscrt",
+                  }
+                );
+
+                if (tx.code === 0) {
+                  setTxDialogSuccess(tx.transactionHash);
+                } else {
+                  setTxDialogError(tx.rawLog);
+                }
+              } catch (e) {
+                // @ts-ignore
+                setTxDialogError(e.message);
+              }
+
+              inputAmountRef.current.value = "";
+              inputRecipientAddressRef.current.value = "";
+              setIsAmountError(true);
+              setIsRecipientError(true);
             }}
           >
             Send Tokens
           </Button>
+          <Dialog open={isTxDialogOpen}>
+            <DialogTitle>Sending Transaction</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                {txDialogError ? (
+                  txDialogError
+                ) : txDialogSuccess ? (
+                  <span>
+                    Success!{" "}
+                    <a
+                      href={`https://www.mintscan.io/secret/txs/${txDialogSuccess}`}
+                      target="_blank"
+                      style={{ textDecoration: "none" }}
+                    >
+                      Open explorer.
+                    </a>
+                  </span>
+                ) : null}
+              </DialogContentText>
+            </DialogContent>
+            {txDialogSuccess || txDialogError ? (
+              <DialogActions>
+                <Button
+                  onClick={() => {
+                    setIsTxDialogOpen(false);
+                    setTxDialogError("");
+                    setTxDialogSuccess(null);
+                  }}
+                  autoFocus
+                >
+                  {txDialogSuccess ? "Cool" : "Bummer"}
+                </Button>
+              </DialogActions>
+            ) : null}
+          </Dialog>
         </div>
       </div>
     </div>
