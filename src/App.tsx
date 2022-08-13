@@ -239,6 +239,7 @@ export default function App() {
                     gasLimit: 20_000,
                     gasPriceInFeeDenom: 0.1,
                     feeDenom: "uscrt",
+                    broadcastCheckIntervalMs: 2_000,
                   }
                 );
 
