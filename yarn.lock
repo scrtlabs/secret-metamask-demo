@@ -560,11 +560,6 @@
   resolved "https://registry.npmjs.org/@noble/hashes/-/hashes-1.0.0.tgz"
   integrity sha512-DZVbtY62kc3kkBtMHqwCOfXrT/hnoORy5BJ4+HU1IR59X0KWAOqsfzQPcUl/lQLlG7qXbe/fZ3r/emxtAl+sqg==
 
-"@noble/hashes@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.1.2.tgz#e9e035b9b166ca0af657a7848eb2718f0f22f183"
-  integrity sha512-KYRCASVTv6aeUi1tsF8/vpyR7zpfs3FUzy2Jqm+MU+LmUKhQ0y2FpfwqkCcxSg2ua4GALJd8k2R76WxwZGbQpA==
-
 "@noble/secp256k1@1.6.3":
   version "1.6.3"
   resolved "https://registry.yarnpkg.com/@noble/secp256k1/-/secp256k1-1.6.3.tgz#7eed12d9f4404b416999d0c87686836c4c5c9b94"
@@ -1700,10 +1695,10 @@ scheduler@^0.20.2:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
 
-secretjs@1.3.0-beta.11:
-  version "1.3.0-beta.11"
-  resolved "https://registry.yarnpkg.com/secretjs/-/secretjs-1.3.0-beta.11.tgz#2289562e331a949f33446bd7f196229d0a7ff356"
-  integrity sha512-4gMkEb13aSLKudERrkOKDonAMHSqNKptq23hsrJQWw+J/fpW2vzTxJov3kdu2Pnq1fZSWhV38ZwSW7r7yPf9Xg==
+secretjs@1.3.0-beta.16:
+  version "1.3.0-beta.16"
+  resolved "https://registry.yarnpkg.com/secretjs/-/secretjs-1.3.0-beta.16.tgz#b2ba57643292ca8f298466b725cafc17139ed5f8"
+  integrity sha512-Lzn/qkwltp9TwaVc0EwTY4NxM4rT52IdIb+HES6AQ8Ifpe0hNKR0fTjVMmhVy+hjD1h9uA4Ur6GYuxsNfjxP6A==
   dependencies:
     "@cosmjs/encoding" "0.27.1"
     "@cosmjs/math" "0.27.1"

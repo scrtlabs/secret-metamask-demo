@@ -16,7 +16,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 import ReactDOM from "react-dom";
 import { BreakpointProvider } from "react-socks";
-import { Bech32, BroadcastMode, SecretNetworkClient } from "secretjs";
+import { Bech32, SecretNetworkClient } from "secretjs";
 import "./index.css";
 import { MetamaskPanel } from "./MetamaskStuff";
 
