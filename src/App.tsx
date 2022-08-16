@@ -236,9 +236,6 @@ export default function App() {
                   {
                     memo: "Sent using MetaMask",
                     gasLimit: 20_000,
-                    gasPriceInFeeDenom: 0.1,
-                    feeDenom: "uscrt",
-                    broadcastCheckIntervalMs: 2_000,
                   }
                 );
 
