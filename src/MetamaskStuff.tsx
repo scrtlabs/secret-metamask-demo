@@ -10,7 +10,7 @@ import Button from "@mui/material/Button";
 import React, { useState } from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { isDesktop } from "react-device-detect";
-import { MetaMaskSigner, SecretNetworkClient } from "secretjs";
+import { MetaMaskWallet, SecretNetworkClient } from "secretjs";
 import { chains } from "./config";
 declare global {
   interface Window {
@@ -119,20 +119,17 @@ async function setupMetamask(
   const ethPubkey = localStorage.getItem(`secretjs_${ethAddress}_pubkey`);
   setIsDialogOpen(!ethPubkey);
 
-  // @ts-ignore
-  const signer = await MetaMaskSigner.create(window.ethereum, ethAddress);
-
-  const [{ address: secretAddress }] = await signer.getAccounts();
+  const wallet = await MetaMaskWallet.create(window.ethereum, ethAddress);
 
   setIsDialogOpen(false);
 
   const secretjs = await SecretNetworkClient.create({
     grpcWebUrl: SECRET_RPC,
     chainId: SECRET_CHAIN_ID,
-    wallet: signer,
-    walletAddress: secretAddress,
+    wallet: wallet,
+    walletAddress: wallet.address,
   });
 
-  setSecretAddress(secretAddress);
+  setSecretAddress(wallet.address);
   setSecretjs(secretjs);
 }
