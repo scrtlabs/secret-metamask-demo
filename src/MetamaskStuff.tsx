@@ -10,7 +10,7 @@ import Button from "@mui/material/Button";
 import React, { useState } from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { isDesktop } from "react-device-detect";
-import { MetaMaskTextSigner, SecretNetworkClient } from "secretjs";
+import { MetaMaskSigner, SecretNetworkClient } from "secretjs";
 import { chains } from "./config";
 declare global {
   interface Window {
