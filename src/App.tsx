@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import BigNumber from "bignumber.js";
 import React, { useEffect, useRef, useState } from "react";
-import { isMobile } from "react-device-detect";
 import ReactDOM from "react-dom";
 import { BreakpointProvider } from "react-socks";
 import { Bech32, SecretNetworkClient } from "secretjs";
@@ -143,7 +142,7 @@ export default function App() {
         >
           Sending Secret Network transactions using MetaMask is that easy.
         </Typography>
-        <div style={{ width: isMobile ? "95%" : "28rem" }}>
+        <div style={{ width: "95%", maxWidth: "28rem" }}>
           <div style={{ width: "100%", margin: "0.7rem 0" }}>
             <InputLabel htmlFor="recipient" variant="standard">
               Recipient

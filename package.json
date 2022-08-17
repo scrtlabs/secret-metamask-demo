@@ -1,5 +1,5 @@
 {
-  "name": "metamask.scrt.network",
+  "name": "secret-metamask-demo",
   "description": "An awesome app to do awesome things",
   "version": "0.0.0",
   "scripts": {
@@ -12,18 +12,14 @@
     "@emotion/styled": "11.6.0",
     "@metamask/providers": "9.1.0",
     "@mui/icons-material": "5.1.1",
-    "@mui/lab": "5.0.0-alpha.55",
     "@mui/material": "5.1.1",
-    "@noble/secp256k1": "1.6.3",
     "bignumber.js": "9.0.1",
     "buffer": "6.0.3",
     "react": "17.0.2",
     "react-copy-to-clipboard": "5.0.4",
-    "react-device-detect": "2.0.1",
     "react-dom": "17.0  .2",
     "react-if": "4.1.1",
     "react-socks": "2.2.0",
-    "secp256k1": "4.0.3",
     "secretjs": "1.3.0-beta.21"
   },
   "devDependencies": {

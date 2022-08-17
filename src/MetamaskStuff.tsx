@@ -9,17 +9,14 @@ import {
 import Button from "@mui/material/Button";
 import React, { useState } from "react";
 import CopyToClipboard from "react-copy-to-clipboard";
-import { isDesktop } from "react-device-detect";
+import { Else, If, Then } from "react-if";
+import { Breakpoint } from "react-socks";
 import { MetaMaskWallet, SecretNetworkClient } from "secretjs";
-import { chains } from "./config";
 declare global {
   interface Window {
     ethereum: MetaMaskInpageProvider;
   }
 }
-
-const SECRET_CHAIN_ID = chains["Secret Network"].chain_id;
-const SECRET_RPC = chains["Secret Network"].rpc;
 
 export function MetamaskPanel({
   secretjs,
@@ -39,11 +36,18 @@ export function MetamaskPanel({
     <div style={{ display: "flex", placeItems: "center", borderRadius: 10 }}>
       <img src="/MetaMask.svg" style={{ width: "1.8rem", borderRadius: 10 }} />
       <span style={{ margin: "0 0.3rem" }}>
-        {secretjs
-          ? isDesktop
-            ? secretAddress
-            : `${secretAddress.slice(0, 10)}...${secretAddress.slice(-7)}`
-          : "Connect wallet"}
+        <If condition={secretAddress.length > 0}>
+          <Then>
+            <Breakpoint small down>{`${secretAddress.slice(
+              0,
+              10
+            )}...${secretAddress.slice(-7)}`}</Breakpoint>
+            <Breakpoint medium up>
+              {secretAddress}
+            </Breakpoint>
+          </Then>
+          <Else>Connect wallet</Else>
+        </If>
       </span>
     </div>
   );
@@ -116,6 +120,8 @@ async function setupMetamask(
     method: "eth_requestAccounts",
   });
 
+  // check if there's an ETH pubkey in cache
+  // if not - open a dialog telling the user that MetaMask requires their signature to retrieve the pubkey
   const ethPubkey = localStorage.getItem(`secretjs_${ethAddress}_pubkey`);
   setIsDialogOpen(!ethPubkey);
 
@@ -124,8 +130,8 @@ async function setupMetamask(
   setIsDialogOpen(false);
 
   const secretjs = await SecretNetworkClient.create({
-    grpcWebUrl: SECRET_RPC,
-    chainId: SECRET_CHAIN_ID,
+    grpcWebUrl: "https://secret-4.api.trivium.network:9091",
+    chainId: "secret-4",
     wallet: wallet,
     walletAddress: wallet.address,
   });
