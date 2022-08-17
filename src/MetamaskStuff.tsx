@@ -111,6 +111,7 @@ async function setupMetamask(
   const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
+  // wait for metamask to inject to window
   while (typeof window.ethereum === "undefined") {
     await sleep(50);
   }
