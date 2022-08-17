@@ -1,3 +1,2 @@
-# metamask.scrt.network
+# Secret MetaMask Demo
 
-MetaMask dashboard for Secret Network
